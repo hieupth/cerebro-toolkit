@@ -23,3 +23,4 @@
 # ------------------------------------------------------------------------------
 
 from .batchprocess import BatchProcess
+from .component import Component
