@@ -38,6 +38,10 @@ def render_opencv(image, fmt="jpg"):
     """
     if not isinstance(image, np.ndarray):
         return None
+    if image.shape[0] > 800:
+        image = cv2.resize(image, [800, int(800 * image.shape[1] / image.shape[0])])
+    if image.shape[1] > 800:
+        image = cv2.resize(image, [int(800 * image.shape[0] / image.shape[1]), 800])
     val, buf = cv2.imencode(".%s" % fmt, image)
     return None if not val else buf, "image/%s" % fmt
 
@@ -124,10 +128,11 @@ class VisualRecord(object):
             "footnotes": self.render_footnotes()
         })
 
-    def render_images(self):
+    def render_images(self, no_html=False):
         """
         Render given images.
-        :return:    rendered images.
+        :param no_html: no render html.
+        :return:        rendered images.
         """
         rendered = []
         # Render images.
@@ -145,7 +150,7 @@ class VisualRecord(object):
             Template('<img src="data:$mime;base64,$data" />').substitute({
                 "data": base64.b64encode(data).decode(),
                 "mime": mime
-            }) for data, mime in rendered)
+            }) for data, mime in rendered) if not no_html else [(np.squeeze(data), mine) for data, mine in rendered]
 
     def render_footnotes(self):
         """

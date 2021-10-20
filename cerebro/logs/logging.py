@@ -23,11 +23,17 @@
 # ------------------------------------------------------------------------------
 
 import os
+import io
 import sys
+import base64
 import logging
 from cerebro.io import Path
 from cerebro.designs import Singleton
 from .records import VisualRecord
+import matplotlib.image as mpimg
+from matplotlib import pyplot as plt
+from PIL import Image
+
 
 
 # Store supported log levels.
@@ -57,7 +63,7 @@ class Logging(metaclass=Singleton):
         return LOG_LEVELS[level] if level in LOG_LEVELS else LOG_LEVELS['none']
 
     def __init__(self,
-                 level=get_env_level(),
+                 level=None,
                  log_dir: str = os.path.join(os.getcwd(), 'logs'),
                  log_file: str = 'log.txt',
                  fmt: str = FORMAT,
@@ -71,11 +77,11 @@ class Logging(metaclass=Singleton):
         """
         super(Logging, self).__init__()
         self._filepath = None
-        self._is_visual = False
+        self._level = None
         self.setup(level, log_dir, log_file, fmt, **kwargs)
 
     def setup(self,
-              level=get_env_level(),
+              level=None,
               log_dir: str = os.path.join(os.getcwd(), 'logs'),
               log_file: str = 'log.txt',
               fmt: str = FORMAT,
@@ -89,6 +95,10 @@ class Logging(metaclass=Singleton):
         :param kwargs:      keyword arguments.
         :return:            none.
         """
+        level = os.environ.get('DEBUG', 'none').lower() if level is None else level
+        level = LOG_LEVELS[level] if level in LOG_LEVELS else LOG_LEVELS['none']
+        self._level = level
+        # Initialize
         formatter = logging.Formatter(fmt)
         self._filepath = Path(os.path.join(log_dir, log_file))
         # Initialize logger.
@@ -100,7 +110,7 @@ class Logging(metaclass=Singleton):
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
         # Add file handler.
-        file_handler = logging.FileHandler(str(self._filepath.datetime()), 'w')
+        file_handler = logging.FileHandler(str(self._filepath.mkdir()), delay=True)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
         # Initialize visual logger.
@@ -108,12 +118,13 @@ class Logging(metaclass=Singleton):
         visual_logger.setLevel(level)
         visual_logger.handlers.clear()
         # Add visual handler
-        visual_handler = logging.FileHandler(str(self._filepath.with_suffix('.html').datetime()), 'w')
+        visual_handler = logging.FileHandler(str(self._filepath.mkdir().with_suffix('.html')), delay=True)
         visual_logger.addHandler(visual_handler)
         # Return result.
         return self
 
-    def create_visual_record(self, title="", images=None, content="", fmt="jpg"):
+    @staticmethod
+    def make_visual_log(title="", images=None, content="", fmt="jpg"):
         """
         Create a visual record for visual logging.
         :param title:   title of record.
@@ -132,6 +143,10 @@ class Logging(metaclass=Singleton):
         """
         if isinstance(msg, VisualRecord):
             logging.getLogger(VISUAL_LOGGER).info(str(msg))
+            if self._level == logging.INFO:
+                for image in msg.images:
+                    plt.imshow(image)
+                    plt.show()
         else:
             logging.getLogger(DEFAULT_LOGGER).info(str(msg))
         return self
