@@ -22,10 +22,11 @@
 #  SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from cerebro.objects import Meta
+from cerebro.objects import MetaClass
+from threading import RLock
 
 
-class Singleton(Meta):
+class Singleton(MetaClass):
     """
     Singleton pattern ensure that there is only one instance will be created.
     ---------
@@ -36,6 +37,8 @@ class Singleton(Meta):
 
     # We will keep created instance.
     _instances = {}
+    # Locking for thread safe.
+    _lock = RLock()
 
     # We now have a lock object that will be used to synchronize threads during
     # first access to the Singleton.
@@ -50,14 +53,15 @@ class Singleton(Meta):
         # previous conditional and reach this point almost at the same time. The
         # first of them will acquire lock and will proceed further, while the
         # rest will wait here.
-        with cls.__lock__:
-            # The first thread to acquire the lock, reaches this conditional,
-            # goes inside and creates the Singleton instance. Once it leaves the
-            # lock block, a thread that might have been waiting for the lock
-            # release may then enter this section. But since the Singleton field
-            # is already initialized, the thread won't create a new object.
-            if cls not in cls._instances:
-                instance = super().__call__(*args, **kwargs)
-                cls._instances[cls] = instance
+        cls._lock.acquire()
+        # The first thread to acquire the lock, reaches this conditional,
+        # goes inside and creates the Singleton instance. Once it leaves the
+        # lock block, a thread that might have been waiting for the lock
+        # release may then enter this section. But since the Singleton field
+        # is already initialized, the thread won't create a new object.
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        cls._lock.release()
         # Return result.
         return cls._instances[cls]

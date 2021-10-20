@@ -23,10 +23,10 @@
 # ------------------------------------------------------------------------------
 
 from abc import ABCMeta
-from threading import Lock
+from threading import RLock
 
 
-class Meta(ABCMeta):
+class MetaClass(ABCMeta):
     """
     The meta class will be used to control python object at low level.
     ---------
@@ -34,13 +34,12 @@ class Meta(ABCMeta):
     @created:   10.10.2021.
     @updated:   20.10.2021.
     """
-    # Provide thread-safe locking.
-    __lock__: Lock = Lock()
+    pass
 
 
-class MetaObject(metaclass=Meta):
+class MetaObject(metaclass=MetaClass):
     """
-    The meta object is base object of all inherited objects in this package.
+    The meta object is low level object of all inherited objects.
     ---------
     @author:    Hieu Pham.
     @created:   10.10.2021.
@@ -72,14 +71,23 @@ class MetaObject(metaclass=Meta):
         """
         return self.__data__()
 
+    @property
+    def lock(self):
+        """
+        Get thread locking.
+        :return: thread locking.
+        """
+        return self._lock
+
     def __init__(self, name: str = None, **kwargs):
         """
         Create new object.
         :param name:    object name.
         :param kwargs:  keyword arguments.
         """
-        super(MetaObject, self).__init__()
         self._name = name
+        self._lock = RLock()
+        super(MetaObject, self).__init__()
 
     def __data__(self, **kwargs) -> dict:
         """

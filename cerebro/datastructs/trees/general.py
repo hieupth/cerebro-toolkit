@@ -97,9 +97,9 @@ class GeneralTree(MetaObject):
         :param kwargs:  keyword arguments.
         :return:        object data.
         """
-        data = super().data(**kwargs)
+        data = super(GeneralTree, self).__data__(**kwargs)
         if not self.is_leaf:
-            data.update({'nodes': [node.data(**kwargs) for node in self._nodes]})
+            data.update({'nodes': [node.__data__(**kwargs) for node in self._nodes]})
         return data
 
     def attach(self, nodes=None, **kwargs):
@@ -113,12 +113,17 @@ class GeneralTree(MetaObject):
             return None
         # Attach single node.
         elif isinstance(nodes, GeneralTree):
+            self.lock.acquire()
             self._nodes.append(nodes)
             nodes._parent = self
+            self.lock.release()
             return nodes
         # Attach list of nodes.
         elif isinstance(nodes, list):
-            return [self.attach(node, **kwargs) for node in nodes]
+            self.lock.acquire()
+            result = [self.attach(node, **kwargs) for node in nodes]
+            self.lock.release()
+            return result
         # Otherwise raise error because of invalid nodes.
         raise TypeError("Tree can only attach tree node(s)")
 
@@ -133,12 +138,17 @@ class GeneralTree(MetaObject):
             return self, None
         # Detach single node.
         elif isinstance(indexes, int):
+            self.lock.acquire()
             child = self._nodes.pop(indexes)
             child._parent = None
+            self.lock.release()
             return child
         # Detach list of indexes.
         elif isinstance(indexes, list):
-            return self, [self.detach(index, **kwargs) for index in indexes]
+            self.lock.acquire()
+            result = [self.detach(index, **kwargs) for index in indexes]
+            self.lock.release()
+            return result
         # Otherwise raise error because of invalid indexes.
         raise TypeError("Tree can only detach node(s) base on index(es) of them")
 

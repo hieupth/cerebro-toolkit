@@ -22,4 +22,4 @@
 #  SOFTWARE.
 # ------------------------------------------------------------------------------
 
-from .meta import Meta, MetaObject
+from .meta import MetaClass, MetaObject
