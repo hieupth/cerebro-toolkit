@@ -23,3 +23,4 @@
 # ------------------------------------------------------------------------------
 
 from .creations import Singleton
+from .behaviours import BatchProcess, Component

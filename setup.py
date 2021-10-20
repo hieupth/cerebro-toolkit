@@ -46,7 +46,7 @@ setup(
     name='cerebro-toolkit',
     packages=find_packages(),
     namespace_packages=['cerebro'],
-    version='0.0.1',
+    version='0.0.1.2',
     license='MIT',
     zip_safe=True,
     description='Provide systematic process of build and improving codebase without creating new functionality that '
