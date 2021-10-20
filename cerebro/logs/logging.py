@@ -159,6 +159,10 @@ class Logging(metaclass=Singleton):
         """
         if isinstance(msg, VisualRecord):
             logging.getLogger(VISUAL_LOGGER).debug(str(msg))
+            if self._level == logging.DEBUG:
+                for image in msg.images:
+                    plt.imshow(image)
+                    plt.show()
         else:
             logging.getLogger(DEFAULT_LOGGER).debug(str(msg))
         return self
@@ -171,6 +175,10 @@ class Logging(metaclass=Singleton):
         """
         if isinstance(msg, VisualRecord):
             logging.getLogger(VISUAL_LOGGER).warning(str(msg))
+            if self._level == logging.WARNING:
+                for image in msg.images:
+                    plt.imshow(image)
+                    plt.show()
         else:
             logging.getLogger(DEFAULT_LOGGER).warning(str(msg))
         return self
@@ -183,6 +191,10 @@ class Logging(metaclass=Singleton):
         """
         if isinstance(msg, VisualRecord):
             logging.getLogger(VISUAL_LOGGER).error(str(msg))
+            if self._level == logging.ERROR:
+                for image in msg.images:
+                    plt.imshow(image)
+                    plt.show()
         else:
             logging.getLogger(DEFAULT_LOGGER).error(str(msg))
         return self
@@ -195,6 +207,10 @@ class Logging(metaclass=Singleton):
         """
         if isinstance(msg, VisualRecord):
             logging.getLogger(VISUAL_LOGGER).critical(str(msg))
+            if self._level == logging.CRITICAL:
+                for image in msg.images:
+                    plt.imshow(image)
+                    plt.show()
         else:
             logging.getLogger(DEFAULT_LOGGER).critical(str(msg))
         return self
