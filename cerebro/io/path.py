@@ -99,7 +99,7 @@ class Path:
         :return:        path object.
         """
         if suffix is not None:
-            self._path.with_suffix(suffix)
+            self._path = self._path.with_suffix(suffix)
         return self
 
     def unique(self, **kwargs):
@@ -127,7 +127,7 @@ class Path:
         :return:        path object.
         """
         stem = '%s-%s' % (self._path.stem, datetime.now().strftime(formats))
-        self._path.with_stem(stem)
+        self._path = self._path.with_stem(stem)
         return self
 
     def mkdir(self, **kwargs):
@@ -136,8 +136,11 @@ class Path:
         :param kwargs:  additional keyword arguments.
         :return:        none.
         """
-        if self._path.is_dir():
-            self._path.mkdir(parents=True, exist_ok=True)
+        if len(self._path.suffixes) == 0:
+            os.makedirs(self._path, exist_ok=True)
+        else:
+            os.makedirs(self._path.parent, exist_ok=True)
+        return self
 
     def copy(self, dst=None, **kwargs):
         """
@@ -148,10 +151,10 @@ class Path:
         """
         assert isinstance(dst, Path), 'Destination must be a path object.'
         # In case both of source and destination is directory.
-        if self._path.is_dir() and dst._path.is_dir():
+        if len(self._path.suffixes) == 0 and len(dst._path.suffixes) == 0:
             shutil.copytree(str(self), str(dst))
         # In case both of source and destination is file.
-        if self._path.is_file() and dst._path.is_file():
+        if len(self._path.suffixes) != 0 and len(dst._path.suffixes) != 0:
             shutil.copy2(str(self), str(dst))
         # Otherwise, raise error.
         raise IOError('Source and destination are not same type.')
